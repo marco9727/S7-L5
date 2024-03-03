@@ -38,11 +38,12 @@
         </div>
       </div>
     </nav>
-    <div class="container">
+    <div class="container mt-4">
       <div class="row justify-content-center">
-        <div class="col-md-10 col-lg-7">
+        <div class="col-md-8">
           <h1 class="mt-5 mb-3 display-5 d-inline-block">Backoffice</h1>
-          <!-- <h5 class="d-inline-block" id="title-alt"></h5> -->
+          <h5 id="subtitle"></h5>
+
           <form onsubmit="handleSubmit(event)">
             <div class="mb-3">
               <label for="name" class="form-label">Nome</label>
@@ -96,9 +97,28 @@
                 required
               />
             </div>
-            <button type="submit" class="btn btn-primary">
-              Inserisci Cellulare
-            </button>
+            <div class="d-flex justify-content-between">
+              <button type="submit" class="btn"></button>
+              <button
+                id="btn-delete"
+                type="button"
+                class="btn btn-danger d-none"
+                onclick="deleteBtn()"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  class="bi bi-trash3-fill"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"
+                  />
+                </svg>
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -111,7 +131,58 @@
     ></script>
 
     <script>
-      const URL = "https://striveschool-api.herokuapp.com/api/product/";
+      const productId = new URLSearchParams(window.location.search).get("id");
+
+      console.log(productId);
+
+      const subtitle = document.getElementById("subtitle");
+
+      // const URL = "https://striveschool-api.herokuapp.com/api/product/";
+      const URL = productId
+        ? `https://striveschool-api.herokuapp.com/api/product/${productId}`
+        : "https://striveschool-api.herokuapp.com/api/product/";
+
+      //faccio window onload per far si che al riavvio della pagina in base alla creazoine o alla
+      //modifica, per quest'ultimo si ripopolano i campi automaticamente in base al prodotto
+      const method = productId ? "PUT" : "POST";
+
+      const putPostBtn = document.querySelector("button[type='submit']");
+      const btnDelete = document.getElementById("btn-delete");
+      window.onload = () => {
+        if (productId) {
+          console.log("pag.Modifica");
+          subtitle.innerText = "Pagina di Modifica Prodotto";
+          putPostBtn.innerText = "Modifica Prodotto";
+          putPostBtn.classList.add("btn-success");
+          btnDelete.classList.remove("d-none");
+
+          fetch(URL, {
+            method: "GET",
+            headers: {
+              authorization:
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NWUxYTE2YTRjNTllYzAwMTk5MGQ3MTIiLCJpYXQiOjE3MDkyODU3MzgsImV4cCI6MTcxMDQ5NTMzOH0.wJiKqxNICPjulg_PfwnyD3wg-fS2dmMjwm-DrFpFsug",
+            },
+          })
+            .then((response) => response.json())
+            .then((product) => {
+              console.log(product);
+
+              document.getElementById("name").value = product.name;
+              document.getElementById("description").value =
+                product.description;
+              document.getElementById("brand").value = product.brand;
+              document.getElementById("linkImmagine").value = product.imageUrl;
+              document.getElementById("price").value = product.price;
+            })
+            .catch((error) => {
+              console.error("Errore durante la richiesta:", error);
+            });
+        } else {
+          console.log("pag Creazione");
+          putPostBtn.classList.add("btn-primary");
+          putPostBtn.innerText = "Crea Prodotto";
+        }
+      };
 
       const handleSubmit = (e) => {
         e.preventDefault();
@@ -132,7 +203,9 @@
         console.log(createCell);
 
         fetch(URL, {
-          method: "POST",
+          //scrivo method senza specificare visto che la mia costante method farà in modo
+          //che sia PUT o POST
+          method,
           body: JSON.stringify(createCell),
           headers: {
             "Content-Type": "application/json",
@@ -165,6 +238,14 @@
               "cellulare inserito correttamente con id: " + createCell._id
             );
 
+            alert(
+              "prodotto con id: " +
+                createCell._id +
+                (productId
+                  ? " è stato modificato con successo "
+                  : " è stato creato correttamente")
+            );
+
             e.target.reset();
           })
           .catch((error) => {
@@ -173,6 +254,26 @@
               error
             );
           });
+      };
+
+      const deleteBtn = () => {
+        const confirmed = window.confirm(
+          "Sei sicuro di voler eliminare il prodotto?"
+        );
+        if (confirmed) {
+          fetch(URL, {
+            method: "DELETE",
+            headers: {
+              authorization:
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NWUxYTE2YTRjNTllYzAwMTk5MGQ3MTIiLCJpYXQiOjE3MDkyODU3MzgsImV4cCI6MTcxMDQ5NTMzOH0.wJiKqxNICPjulg_PfwnyD3wg-fS2dmMjwm-DrFpFsug",
+            },
+          })
+            .then((resp) => resp.json())
+            .then((deletedProduct) => {
+              alert("Hai Eliminato " + deletedProduct.name);
+              window.location.assign("./index.html");
+            });
+        }
       };
     </script>
   </body>

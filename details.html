@@ -10,11 +10,6 @@
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
-    <style>
-      .custom-card {
-        height: 100%;
-      }
-    </style>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
@@ -99,8 +94,7 @@
           card.classList.add("mb-4");
 
           const cardBody = document.createElement("div");
-          cardBody.classList.add("card", "h-100", "custom-card");
-          cardBody.classList.add();
+          cardBody.classList.add("card", "h-100");
 
           const image = document.createElement("img");
           image.classList.add("card-img-top", "object-fit-cover");
@@ -119,10 +113,21 @@
           price.classList.add("card-text", "text-muted");
           price.textContent = `Prezzo ingrosso: ${cellDetails.price} €`;
 
+          const btnEdit = document.createElement("button");
+          btnEdit.classList.add("btn", "btn-primary", "d-inline-block");
+          btnEdit.innerText = "Modifica cell";
+          btnEdit.addEventListener("click", () => modificaCell());
+
+          const modificaCell = (editCell) => {
+            window.location.assign("./backoffice.html?id=" + productId);
+            // console.log(modificaCell);
+          };
+
           cardBody.appendChild(image);
           cardBody.appendChild(cardTitle);
           cardBody.appendChild(description);
           cardBody.appendChild(price);
+          cardBody.appendChild(btnEdit);
           card.appendChild(cardBody);
           cardsContainer.appendChild(card);
         })
